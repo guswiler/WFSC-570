@@ -1,6 +1,7 @@
 rm(list=ls()) # clean workspace.  Caution!!!!
 
-# Lab 1: Introduction to spatial data in R: rasters
+
+# Lab 1: Introduction to spatial data in R: rasters ----
 
 # In today's lab, we will begin working with spatial data in R. 
 # You may have learned in a GIS class that there are two major types of spatial data: raster and vector. We will cover vector data a bit later but will start with raster data because most of the spatial data you will work with in wildlife habitat selection analyses will be raster data.
@@ -110,17 +111,14 @@ plot(pr1)   ## can see the distortion with the reprojection.
 # For this reason, if I'm going to be reprojecting rasters I use ArcGIS.
 # Let's switch over and see what that looks like.
 
-# Working with rasters ----- Finished here Tuesday 8/27
+# Working with rasters -----
 
-# Now that we have some foundational knowledge of rasters lets bring in a 
-# real-world raster and explore some of terra's functionality for working
-# with and manipulating rasters.
+# Now that we have some foundational knowledge of rasters lets bring in a real-world raster and explore some of terra's functionality for working with and manipulating rasters.
 
 # We'll start with the 2021 NLCD land cover layer for Maricopa County
 
-NLCD <- rast(paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
-                    "WFSC 570 Habitat Analysis 3cr/ArcGIS/rasters/",
-                    "NLCD_2021_Maricopa.tif"))
+NLCD <- rast(paste0("lab_1/NLCD_2021_Maricopa.tif"))
+
 
 # What do we see when we read this in? We have a single-layer SpatRaster with
 # 30 x 30 unit pixels (the units are meters because we are in UTM) and a
