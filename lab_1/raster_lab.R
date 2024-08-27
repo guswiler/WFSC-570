@@ -117,37 +117,49 @@ plot(pr1)   ## can see the distortion with the reprojection.
 
 # We'll start with the 2021 NLCD land cover layer for Maricopa County
 
-NLCD <- rast(paste0("lab_1/NLCD_2021_Maricopa.tif"))
+NLCD <- rast("lab_1/NLCD_2021_Maricopa.tif")
+## you'll need to set your own file path that will look something like C:\Users\Olivia\Documents\R_Projects\WFSC-570\lab_1\NLCD_2021_Maricopa.tif when you paste it in, you'll need to change the \ to / for it to work in r.
+## if you use setwd() you can set your working directory to direct it into the folder you're gathering files from so you can describe a shorter path like I did above.
 
 
-# What do we see when we read this in? We have a single-layer SpatRaster with
-# 30 x 30 unit pixels (the units are meters because we are in UTM) and a
-# NAD83 UTM zone 12N CRS and values ranging from 70-108.
 
-NLCD
-ncell(NLCD)
-crs(NLCD)
-res(NLCD)
+### side note from Javan
+file_paths <- paste0("C:/Users/Olivia/Documents/",
+                     "R_Projects/WFSC-570/lab_1/NLCD_2021_Maricopa.tif")
+## he was just using paste0() to connect all the bits of his filepath (everything between the commas) because he doesn't like long file paths.
+
+
+
+# What do we see when we read this in? We have a single-layer SpatRaster with 30 x 30 unit pixels (the units are meters because we are in UTM) and a NAD83 UTM zone 12N CRS and values ranging from 70-108.
+
+NLCD         ## stands for National Land Cover Data, may be a useful resource for large region analyses
+ncell(NLCD)  ## total number of cells
+crs(NLCD)    ## coord. ref. sys.
+res(NLCD)    ## resolution (30x30m b/c UTM is in meters)
 
 plot(NLCD)
 
+## raster processing tools ----
 # Crop -----
 
-# We often have a raster that is larger than we need it, or we might want to 
-# look at a subset of our data in more detail. Let's crop our Maricopa County
-# raster to the area around Lake Pleasant. 
+# We often have a raster that is larger than we need it, or we might want to look at a subset of our data in more detail. Let's crop our Maricopa County raster to the area around Lake Pleasant. 
 
-extent <- ext(c(371141,396700,3740971,3762533))
+extent <- ext(c(371141,396700,3740971,3762533)) ## setting a spatial extent using ext() based on our area of interest
 
 plot(NLCD)
-plot(extent,add=T)
+plot(extent, add=TRUE)  ## adds a small box to our plot showing the extent that we have specified
 
-NLCD_crop <- crop(NLCD,extent)
-NLCD_crop
+NLCD_crop <- crop(NLCD,extent) ## crops NLCD raster to our spatial extent
+NLCD_crop  ## see how it has much fewer rows and cols than the original NLCD raster
+## you can see the extent in this raster is diff than the extent specified for the crop. This is because r won't cut cells in the raster, so it may have a slightly different extent in the raster.
+## b/c of this, make sure to include a buffer around your study area when cropping. Also will talk about buffers in relation to edge effects later on.
+## later on, be sure that later rasters you use in analyses line up in their extent (use first one as template for all other raster cropping). So in future crops you can specify it like: NLCD_new <- crop(NLCD, NLCD_crop).
 
 plot(NLCD_crop)
 
-# Reclassify ------
+## Ended here on Tuesday 8/27
+
+# Reclassify ------ 
 
 # We often want to reclassify our rasters to group certain values together
 # (e.g., convert a continuous surface into a multi-level categorical surface
