@@ -68,9 +68,22 @@ plot(RACA_vect, add=TRUE,
 
 # 3. Extract values for each landscape feature at some buffer around each site. You may use the same buffer for each feature or a different buffer for each feature ----
 
+frog_buff <- buffer(frog_vect, width = 1000)
 
+# create function to plot with buffers
+plot_sp_buff <- function(raster, vector, title) { 
+  plot(raster,
+       main = title,
+       ext = ext(vector))
+  plot(vector,
+       cex = 0.5,
+       add = TRUE)
+  plot(frog_buff,
+       add = TRUE)
+}
 
-
+plot_sp_buff(frog_DEM, RACA_vect, "Rana catesbeiana, elevation")
+plot_sp_buff(frog_NLCD, RACA_vect, "Rana catesbeiana, elevation")
 
 # 4. Create boxplots describing the distributions of each feature at sites where the species was detected and sites where the species was not detected ----
 
