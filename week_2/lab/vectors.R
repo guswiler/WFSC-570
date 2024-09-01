@@ -103,11 +103,10 @@ plot(becky)
 
 # Note that instead of creating a separate file path object I simply insert the file path into the rast() function.
 
-upland <- rast(paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
-                      "WFSC 570 Habitat Analysis 3cr/ArcGIS/rasters/",
-                      "becky_Upland_100.tif"))
+upland <- rast("lab/becky_Upland_100.tif")
 upland
-plot(upland,colNA="lightblue")
+plot(upland,
+     colNA="dodgerblue")
 
 # The NA values in this raster represent open water land cover. We can plot Becky's points a couple different ways. We could use the points() function and the x/y columns in the data frame, or we could use terra's plot() function to add our new SpatVector of Becky's points.
 
@@ -117,15 +116,16 @@ plot(becky, add = T,
      bg = "lightgrey") # Point background color
 
 # We can then extract the pixel values directly at each point. 
+?extract
 
-upland_values <- extract(upland, becky)
+upland_values <- terra::extract(upland, becky)
 class(upland_values)
 head(upland_values)
 
 # By default, the extract() function returns a data frame with two columns, one is point ID (just a sequence from one to the number of points) and the other is our raster values at each point. extract() gives us a few different options for omitting or including different information. 
 # For example, we can omit the ID column with ID=F and include each points x/y coordinates with xy=T.
 
-head(extract(upland, becky, ID = F, xy = T))
+head(terra::extract(upland, becky, ID = F, xy = T))
 
 # Just for fun, lets create a histogram of our extracted values
 
@@ -139,22 +139,11 @@ head(becky)
 
 # We can also use the bind= argument to return our original SpatVector object with the extracted values appended to our data.
 
-tmp <- extract(upland, becky, bind = T)
+tmp <- terra::extract(upland, becky, bind = T)
 tmp
 head(tmp)
 
-# Remember that terra allows us to combine multiple rasters (of identical extent and dimensions) into a multi-layer SpatRaster object. Lets do this with three other land cover layers from Becky's study area: urban, wetland, and the SD of Winter NDVI. Rather than reading in three additional SpatRaster objects we can create a multi-layer SpatRaster object directly by supplying file paths. 
-# This could get tedious if our file paths are long so lets cut out some text by setting our working directory to the folder where we have stored these .tif files.
-
-TIF_folder <- paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
-                     "WFSC 570 Habitat Analysis 3cr/ArcGIS/rasters/")
-
-# We can use the function dir.exists() to make sure this folder exists
-
-dir.exists(TIF_folder)
-
-# Now we can set our working directory to this folder
-setwd(TIF_folder)
+# Remember that terra allows us to combine multiple rasters (of identical extent and dimensions) into a multi-layer SpatRaster object. Let's do this with three other land cover layers from Becky's study area: urban, wetland, and the SD of Winter NDVI. Rather than reading in three additional SpatRaster objects we can create a multi-layer SpatRaster object directly by supplying file paths.
 
 # We can make sure that our .tif files are in this folder using the list.files() function
 
@@ -162,12 +151,12 @@ list.files()
 
 # Now we can use the c() function to combine or concatenate just the file names of the four "becky" .tif files
 
-becky_tifs <- c("becky_Upland_100.tif",     # Undeveloped upland land cover
-                "becky_Urban_100.tif",      # Urban land cover
-                "becky_Wetlands_100.tif",   # Wetland land cover
-                "becky_Win_SDNDVI_100.tif") # Standard deviation of winter
-                                              # NDVI within a 100-m radius
-                                              # buffer.
+becky_tifs <- c("lab/becky_Upland_100.tif",     # Undeveloped upland land cover
+                "lab/becky_Urban_100.tif",      # Urban land cover
+                "lab/becky_Wetlands_100.tif",   # Wetland land cover
+                "lab/becky_Win_SDNDVI_100.tif") # Standard deviation of winter
+                                                  # NDVI within a 100-m radius
+                                                  # buffer.
 
 FL <- rast(becky_tifs)
 FL
@@ -175,27 +164,19 @@ plot(FL, colNA = "lightblue")
 
 # If you are curious about what this code would look like without all the intermediate steps, here you go:
 
-# FL <- rast(c(paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
-#                     "WFSC 570 Habitat Analysis 3cr/ArcGIS/rasters/",
-#                     "becky_Upland_100.tif"),
-#              paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
-#                     "WFSC 570 Habitat Analysis 3cr/ArcGIS/rasters/",
-#                     "becky_Urban_100.tif"),
-#              paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
-#                     "WFSC 570 Habitat Analysis 3cr/ArcGIS/rasters/",
-#                     "becky_Wetlands_100.tif"),
-#              paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
-#                     "WFSC 570 Habitat Analysis 3cr/ArcGIS/rasters/",
-#                     "becky_Win_SDNDVI_100.tif")))
+FL <- rast(c("lab/becky_Upland_100.tif",
+             "lab/becky_Urban_100.tif",
+             "lab/becky_Wetlands_100.tif",
+             "lab/becky_Win_SDNDVI_100.tif"))
 
 # We can then provide this multi-layer SpatRaster to the extract function and it will extract the values of all four layers at each of our points.
 
-LC_values <- extract(FL, becky)
+LC_values <- terra::extract(FL, becky)
 head(LC_values)
 
 # We can then treat our SpatVector oject just like a data frame and cbind our SpatVector object with our data frame of newly extracted land cover values. Lets set bind=T so we can append these values directly into our SpatVector object "becky"
 
-becky <- extract(FL, becky, bind = T)
+becky <- terra::extract(FL, becky, bind = T)
 becky
 head(becky)
 
