@@ -117,17 +117,9 @@ plot(pr1)   ## can see the distortion with the reprojection.
 
 # We'll start with the 2021 NLCD land cover layer for Maricopa County
 
-NLCD <- rast("lab_1/NLCD_2021_Maricopa.tif")
+NLCD <- rast("lab/DEM_Maricopa.tif")
 ## you'll need to set your own file path that will look something like C:\Users\Olivia\Documents\R_Projects\WFSC-570\lab_1\NLCD_2021_Maricopa.tif when you paste it in, you'll need to change the \ to / for it to work in r.
 ## if you use setwd() you can set your working directory to direct it into the folder you're gathering files from so you can describe a shorter path like I did above.
-
-
-
-### side note from Javan
-file_paths <- paste0("C:/Users/Olivia/Documents/",
-                     "R_Projects/WFSC-570/lab_1/NLCD_2021_Maricopa.tif")
-## he was just using paste0() to connect all the bits of his filepath (everything between the commas) because he doesn't like long file paths.
-
 
 
 # What do we see when we read this in? We have a single-layer SpatRaster with 30 x 30 unit pixels (the units are meters because we are in UTM) and a NAD83 UTM zone 12N CRS and values ranging from 70-108.
