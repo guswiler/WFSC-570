@@ -153,18 +153,9 @@ plot(NLCD_crop)
 
 # Reclassify ------ 
 
-# We often want to reclassify our rasters to group certain values together
-# (e.g., convert a continuous surface into a multi-level categorical surface
-# or recombine categories). This is particularly useful for categorical land
-# cover surfaces.
-# One of the first reclassifications we might want to try here is converting
-# the values we see into the original land cover values found at
-# https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
+# We often want to reclassify our rasters to group certain values together (e.g., convert a continuous surface into a multi-level categorical surface or recombine categories). This is particularly useful for categorical land cover surfaces. One of the first reclassifications we might want to try here is converting the values we see into the original land cover values found at https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
 
-# To use the classify function in terra, we first need to create a matrix that 
-# tells R what original values should be converted into which new values. For
-# categorical land cover maps we can use a two-column matrix specifying the
-# "is" and "becomes" values.
+# To use the classify function in terra, we first need to create a matrix that tells R what original values should be converted into which new values. For categorical land cover maps we can use a two-column matrix specifying the "is" and "becomes" values.
 
 reclass <- matrix(c(70,222,217,235,171,179,104,28,181,204,223,220,171,184,108,
                     11,21,22,23,24,31,41,42,43,52,71,81,82,90,95),
@@ -174,9 +165,7 @@ NLCD <- classify(NLCD, reclass)
 NLCD
 plot(NLCD)
 
-# Now lets say we only want a layer showing forest land covers. We can create
-# a binary raster where 1 represents all three of the NLCD forest classes and
-# 0 represents everything else.
+# Now lets say we only want a layer showing forest land covers. We can create a binary raster where 1 represents all three of the NLCD forest classes and 0 represents everything else.
 
 forest_matrix <- matrix(c(11,21,22,23,24,31,41,42,43,52,71,81,82,90,95,
                           0,0,0,0,0,0,1,1,1,0,0,0,0,0,0),
@@ -188,14 +177,8 @@ plot(FOREST)
 
 table(as.matrix(FOREST))
 
-# We can also use a three-column matrix to convert ranges of values, rather
-# than individual values. This approach can get confusing depending on whether 
-# you want the to-from values to be included in their respective rows. By 
-# default, classify excludes the "to" value in your reclassification matrix
-# So in the example below, 0 would not be included in the first row,
-# 40 would not be included in the second row, and 44 would not be
-# included in the third row. Which is fine for this illustration
-# using an integer raster.
+# We can also use a three-column matrix to convert ranges of values, rather than individual values. This approach can get confusing depending on whether you want the to-from values to be included in their respective rows. By default, classify excludes the "to" value in your reclassification matrix.
+# So in the example below, 0 would not be included in the first row, 40 would not be included in the second row, and 44 would not be included in the third row. Which is fine for this illustration using an integer raster.
 
 forest_matrixb <- matrix(c(0,40,44,
                            40,44,100,
@@ -217,26 +200,15 @@ terra::summary(FOREST)
 
 # Euclidean distance to a feature -------
 
-# In our habitat analyses we are often interested in using distance to a 
-# feature as a covariate. This might be distance to nearest water, distance
-# to forest edge, or distance to road. These distances are invariably 
-# measured as Euclidean (straight line) distances, which may or may not
-# be appropriate, but we can easily measure such distances using terra.
+# In our habitat analyses we are often interested in using distance to a feature as a covariate. This might be distance to nearest water, distance to forest edge, or distance to road. These distances are invariably measured as Euclidean (straight line) distances, which may or may not be appropriate, but we can easily measure such distances using terra.
 
-# Let's measure distance to nearest water using our cropped NLCD raster
-# around Lake Pleasant. Since we have reclassified the original NLCD
-# layer to the actual NLCD land cover values lets re-crop our raster.
+# Let's measure distance to nearest water using our cropped NLCD raster around Lake Pleasant. Since we have reclassified the original NLCD layer to the actual NLCD land cover values lets re-crop our raster.
 
 NLCD_crop <- crop(NLCD,extent)
 NLCD_crop
 plot(NLCD_crop)
 
-# To use the distance() function in terra we need to reclassify our raster
-# further. Specifically, distance() measures the distance, for all cells 
-# that are NA in the raster to the nearest cell that is not NA. So if
-# we want to measure the distance to the nearest water we need to 
-# reclassify our raster so that water pixels are one and all other 
-# pixels are NA.
+# To use the distance() function in terra we need to reclassify our raster further. Specifically, distance() measures the distance, for all cells that are NA in the raster to the nearest cell that is not NA. So if we want to measure the distance to the nearest water we need to reclassify our raster so that water pixels are one and all other pixels are NA.
 
 
 water_matrix <- matrix(c(0,11,
@@ -259,15 +231,9 @@ plot(WATER,add=T)
 
 # Creating edges ------
 
-# Edge environments, or ecotones, play a very important role in wildlife and
-# community ecology and are often worth considering in wildlife habitat analyses.
-# We can use R to create a binary "edge" raster where 1 represents an edge pixel
-# and 0 represents all other pixels.
+# Edge environments, or ecotones, play a very important role in wildlife and community ecology and are often worth considering in wildlife habitat analyses. We can use R to create a binary "edge" raster where 1 represents an edge pixel and 0 represents all other pixels.
 
-# We can use the boundaries() function but be warned that this function can take
-# a while to run. It took 8.6 minutes to run this function on our FOREST raster,
-# and there isn't much forest in Maricopa County! So lets crop a smaller raster
-# to demonstrate how this function works.
+# We can use the boundaries() function but be warned that this function can take a while to run. It took 8.6 minutes to run this function on our FOREST raster, and there isn't much forest in Maricopa County! So lets crop a smaller raster to demonstrate how this function works.
 
 FOREST_crop <- crop(FOREST, ext(c(423649,424285,3773796,3774313)))
 plot(FOREST_crop,col=c("white","green"))
@@ -283,9 +249,7 @@ plot(forest_edge,colNA="lightblue",
 
 # Creating layers ---------
 
-# Within terra we can combine multiple rasters of identical extents and
-# resolutions into a single multi-layered SpatRaster object. This is often 
-# useful when making model-based predictions with our rasters. 
+# Within terra we can combine multiple rasters of identical extents and resolutions into a single multi-layered SpatRaster object. This is often useful when making model-based predictions with our rasters. 
 
 DEM <- rast(paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
                     "WFSC 570 Habitat Analysis 3cr/ArcGIS/rasters/",
@@ -297,8 +261,7 @@ plot(layers)
 
 # Writing rasters -------------
 
-# Saving rasters created using terra to disk is very easy using the writeRaster
-# function. 
+# Saving rasters created using terra to disk is very easy using the writeRaster function. 
 
 writeRaster(FOREST_smooth,
             paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
