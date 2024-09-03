@@ -149,7 +149,8 @@ NLCD_crop  ## see how it has much fewer rows and cols than the original NLCD ras
 
 plot(NLCD_crop)
 
-## Ended here on Tuesday 8/27
+## Ended here on Tuesday 8/27 ----
+## See raster_lab_Part_2.R for remaining notes
 
 # Reclassify ------ 
 
