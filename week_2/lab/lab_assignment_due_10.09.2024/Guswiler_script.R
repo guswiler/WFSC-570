@@ -4,67 +4,86 @@
 
 # load packages into r
 library(terra)
-library(tidyverse)
 
 ## 1. Create a SpatVector using the CSV file of site locations and data ----
 
 # read frog_ponds.csv into r environment
-frog_ponds <- read_csv("lab_assignment_due_10.09.2024/frog_ponds.csv")
+frog_ponds <- read.csv("lab/lab_assignment_due_10.09.2024/frog_ponds.csv")
 
 # create SpatVector from data frame
-frog_vect <- vect(frog_ponds,
-              geom = c("x","y"),
-              crs = "epsg:26917")
+frog_vect <- vect(frog_ponds,     # data frame
+              geom = c("x","y"),  # indicate columns containing spat. coords.
+              crs = "epsg:26917") # define crs
 
 plot(frog_vect)
 
 ## 2. Create at least two SpatRaster objects representing two landscape features that could be used as covariates in an analysis of the habitat associations of at least one species. You get to choose both the landscape features and the species. ----
 
-# loading in raster files
-frog_DEM <- rast("lab_assignment_due_10.09.2024/frog_ponds_DEM.tif") # elevation
+# load in land cover file as SpatRaster
+NLCD_rast <- rast("lab/lab_assignment_due_10.09.2024/frog_ponds_NLCD.tif")
+NLCD_rast
 
-frog_NLCD <- rast("lab_assignment_due_10.09.2024/frog_ponds_NLCD.tif") # land cover
+# create SpatRasters for shrub/scrub LC and grassland/herbaceous LC
+scrub <- matrix(c(11,21,22,23,24,31,41,42,43,52,71,81,82,90,95, # matrix denoting 1 = scrub,
+                  0,0,0,0,0,0,0,0,0,1,0,0,0,0,0),               #  0 = not scrub
+                ncol = 2)
+herb <- matrix(c(11,21,22,23,24,31,41,42,43,52,71,81,82,90,95, # matrix denoting 1 = herbaceous,
+                   0,0,0,0,0,0,0,0,0,0,1,0,0,0,0),              #  0 = not herbaceous
+                 ncol = 2)
+
+scrub_rast <- classify(NLCD_rast, scrub) # apply matrices to original raster
+herb_rast <- classify(NLCD_rast, grass)
 
 
-# separating species in frog_ponds
-sp_vect <- function(data, sp_code) {  # function to separate species data and create vector
+# looking at the data
+frog_ext <- ext(frog_vect) # set extent for maps based on vector
+
+
+plot(scrub_rast,
+     ext = frog_ext,
+     col = c("lightgrey",   # not scrub
+             "goldenrod2"), # scrub
+     main = "scrub cover")
+plot(frog_vect,
+     add = T,
+     pch = 20,
+     col = c("cyan",    # KISO
+             "yellow",  # BUAL
+             "red",     # THYC
+             "purple")) # RACA
+
+
+plot(herb_rast,
+     ext = frog_ext,
+     col = c("lightgrey",   # not herb
+             "limegreen"),  # herb
+     main = "herbaceous cover")
+plot(frog_vect,
+     add = T,
+     pch = 20,
+     col = c("cyan",    # KISO
+             "yellow",  # BUAL
+             "red",     # THYC
+             "purple")) # RACA
+
+
+# separate vectors for each species in frog_ponds
+sp_vect <- function(data, sp_code) {  
   df <- data %>% 
-    filter(!!sym(sp_code) == 1) %>% 
+    dplyr::filter(!!sym(sp_code) == 1) %>% 
     select(Site, x, y, sp_code)
   vector <- vect(df,
                  geom = c("x","y"),
                  crs = "epsg:26917")
   return(vector)
-}
+} # fn to separate sp data and create vector
 
-KISO_vect <- sp_vect(frog_ponds, "KISO")
+KISO_vect <- sp_vect(frog_vect, "KISO")
+BUAL_vect <- sp_vect(frog_vect, "BUAL")
+THCY_vect <- sp_vect(frog_vect, "THCY")
+RACA_vect <- sp_vect(frog_vect, "RACA")
 
-BUAL_vect <- sp_vect(frog_ponds, "BUAL")
-
-THCY_vect <- sp_vect(frog_ponds, "THCY")
-
-RACA_vect <- sp_vect(frog_ponds, "RACA")
-
-# looking at the data
-plot(frog_DEM,
-     main = "Kinosternon sonoriense, elevation")
-plot(KISO_vect, add=TRUE,
-     pch = 21)
-
-plot(frog_DEM,
-     main = "Bufo alvarius, elevation")
-plot(BUAL_vect, add=TRUE,
-     pch = 21)
-
-plot(frog_DEM,
-     main = "Thamnophis cyrtopsis, elevation")
-plot(THCY_vect, add=TRUE,
-     pch = 21)
-
-plot(frog_DEM,
-     main = "Rana catesbeiana, elevation")
-plot(RACA_vect, add=TRUE,
-     pch = 21)
+KISO <- terra::extract(frog_vect$KISO)
 
 # 3. Extract values for each landscape feature at some buffer around each site. You may use the same buffer for each feature or a different buffer for each feature ----
 
