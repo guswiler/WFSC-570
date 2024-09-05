@@ -4,16 +4,17 @@
 
 # load packages into r
 library(terra)
+library(tidyverse)
 
 ## 1. Create a SpatVector using the CSV file of site locations and data ----
 
 # read frog_ponds.csv into r environment
-frog_ponds <- read.csv("lab/lab_assignment_due_10.09.2024/frog_ponds.csv")
+data <- read_csv("lab/lab_assignment_due_10.09.2024/frog_ponds.csv")
 
 # create SpatVector from data frame
-frog_vect <- vect(frog_ponds,     # data frame
+frog_vect <- vect(data,     # data frame
               geom = c("x","y"),  # indicate columns containing spat. coords.
-              crs = "epsg:26917") # define crs
+              crs = "epsg:26912") # define crs
 
 plot(frog_vect)
 
@@ -23,24 +24,21 @@ plot(frog_vect)
 NLCD_rast <- rast("lab/lab_assignment_due_10.09.2024/frog_ponds_NLCD.tif")
 NLCD_rast
 
-# create SpatRasters for shrub/scrub LC and grassland/herbaceous LC
+# create SpatRasters for shrub/scrub LC and urban LC
 scrub <- matrix(c(11,21,22,23,24,31,41,42,43,52,71,81,82,90,95, # matrix denoting 1 = scrub,
                   0,0,0,0,0,0,0,0,0,1,0,0,0,0,0),               #  0 = not scrub
                 ncol = 2)
-herb <- matrix(c(11,21,22,23,24,31,41,42,43,52,71,81,82,90,95, # matrix denoting 1 = herbaceous,
-                   0,0,0,0,0,0,0,0,0,0,1,0,0,0,0),              #  0 = not herbaceous
+urban <- matrix(c(11,21,22,23,24,31,41,42,43,52,71,81,82,90,95, # matrix denoting 1 = urban,
+                   0,1,1,1,1,0,0,0,0,0,0,0,0,0,0),              #  0 = not urban
                  ncol = 2)
 
 scrub_rast <- classify(NLCD_rast, scrub) # apply matrices to original raster
-herb_rast <- classify(NLCD_rast, grass)
+urban_rast <- classify(NLCD_rast, urban)
 
 
 # looking at the data
-frog_ext <- ext(frog_vect) # set extent for maps based on vector
-
-
 plot(scrub_rast,
-     ext = frog_ext,
+     ext = ext(frog_vect),  # set extent to data
      col = c("lightgrey",   # not scrub
              "goldenrod2"), # scrub
      main = "scrub cover")
@@ -49,65 +47,115 @@ plot(frog_vect,
      pch = 20,
      col = c("cyan",    # KISO
              "yellow",  # BUAL
-             "red",     # THYC
+             "red",     # THCY
              "purple")) # RACA
 
 
-plot(herb_rast,
-     ext = frog_ext,
-     col = c("lightgrey",   # not herb
-             "limegreen"),  # herb
-     main = "herbaceous cover")
+plot(urban_rast,
+     ext = ext(frog_vect),
+     col = c("lightgrey",   # not urban
+             "brown"),  # urban
+     main = "urban cover")
 plot(frog_vect,
      add = T,
      pch = 20,
-     col = c("cyan",    # KISO
-             "yellow",  # BUAL
-             "red",     # THYC
-             "purple")) # RACA
+     col = c("cyan",    
+             "yellow",  
+             "red",     
+             "purple"))
 
 
-# separate vectors for each species in frog_ponds
+# looking at just bullfrogs
 sp_vect <- function(data, sp_code) {  
   df <- data %>% 
-    dplyr::filter(!!sym(sp_code) == 1) %>% 
-    select(Site, x, y, sp_code)
-  vector <- vect(df,
+    filter(!!sym(sp_code) == 1) %>%  # keep rows with 1 in specified sp col
+    select(Site, x, y, sp_code)      # remove cols other than specified
+  vector <- vect(df,                 # create SpatVector from data frame
                  geom = c("x","y"),
-                 crs = "epsg:26917")
+                 crs = "epsg:26912")
   return(vector)
-} # fn to separate sp data and create vector
+} # function to separate species data and create vector
 
-KISO_vect <- sp_vect(frog_vect, "KISO")
-BUAL_vect <- sp_vect(frog_vect, "BUAL")
-THCY_vect <- sp_vect(frog_vect, "THCY")
-RACA_vect <- sp_vect(frog_vect, "RACA")
+RACA_vect <- sp_vect(data, "RACA") # do that
+RACA_vect
 
-KISO <- terra::extract(frog_vect$KISO)
 
 # 3. Extract values for each landscape feature at some buffer around each site. You may use the same buffer for each feature or a different buffer for each feature ----
 
-frog_buff <- buffer(frog_vect, width = 1000)
+# define the buffer
+RACA_buff <- buffer(RACA_vect,
+                    width = 100) # 100m radius buffer
 
-# create function to plot with buffers
-plot_sp_buff <- function(raster, vector, title) { 
-  plot(raster,
-       main = title,
-       ext = ext(vector))
-  plot(vector,
-       cex = 0.5,
-       add = TRUE)
-  plot(frog_buff,
-       add = TRUE)
-}
+# add mean buffer values to vector
+scrub_buff <- terra::extract(scrub_rast,
+                             RACA_buff,
+                             fun = "mean",
+                             na.rm = T)
+RACA_vect$scrub_buff <- scrub_buff$Red
 
-plot_sp_buff(frog_DEM, RACA_vect, "Rana catesbeiana, elevation")
-plot_sp_buff(frog_NLCD, RACA_vect, "Rana catesbeiana, elevation")
+urban_buff <- terra::extract(urban_rast,
+                             RACA_buff,
+                             fun = "mean",
+                             na.rm = T)
+RACA_vect$urban_buff <- urban_buff$Red
+
+
+# looking at the data
+RACA_ext <- ext(RACA_buff)  # set extent based on buffer
+
+
+plot(scrub_rast,      # plot raster
+     ext = RACA_ext,
+     col = c("lightgrey",   
+             "goldenrod2"),
+     main = expression(italic("Rana catesbeiana")
+                       *", scrub cover"))
+plot(RACA_vect,       # add vector
+     add = T,
+     pch = 20,
+     cex = 0.5,
+     col = "purple")
+plot(scrub_buff,      # add buffer
+     add = T)
+
+
+plot(urban_rast,
+     ext = RACA_ext,
+     col = c("lightgrey",
+             "brown"),
+     main = expression(italic("Rana catesbeiana")
+                       *", urban cover"))
+plot(RACA_vect,
+     add = T,
+     pch = 20,
+     cex = 0.5,
+     col = "purple")
+plot(urban_buff,
+     add = T)
+
 
 # 4. Create boxplots describing the distributions of each feature at sites where the species was detected and sites where the species was not detected ----
 
-
-
+boxplot(RACA_vect$scrub_buff,
+        RACA_vect$urban_buff,
+        names = c("scrub", "urban"),
+        main = expression(italic("Rana catesbeiana")
+                          *" observations between land cover types"),
+        ylab = "Occupancy",
+        xlab = "Land Cover Type",
+        col = c("goldenrod2", "brown"),
+        boxwex = 0.5)  # change box widths
 
 
 # 5. Use a t-test (R function t.test()) or a Mann-Whitney test (R function wilcox.test()) to compare the values of each landscape feature between sites where your focal species was and was not detected.
+
+# checking standard deviation and variance to determine what test to use
+sd(RACA_vect$scrub_buff)
+var(RACA_vect$scrub_buff)
+
+sd(RACA_vect$urban_buff)
+var(RACA_vect$urban_buff)
+
+# 
+wilcox.test(RACA_vect$scrub_buff,
+            RACA_vect$urban_buff)
