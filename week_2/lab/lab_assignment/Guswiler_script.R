@@ -9,7 +9,7 @@ library(tidyverse)
 ## 1. Create a SpatVector using the CSV file of site locations and data ----
 
 # read frog_ponds.csv into r environment
-data <- read_csv("lab/lab_assignment_due_10.09.2024/frog_ponds.csv")
+data <- read_csv("week_2/lab/lab_assignment/frog_ponds.csv")
 
 # create SpatVector from data frame
 frog_vect <- vect(data,     # data frame
@@ -21,7 +21,7 @@ plot(frog_vect)
 ## 2. Create at least two SpatRaster objects representing two landscape features that could be used as covariates in an analysis of the habitat associations of at least one species. You get to choose both the landscape features and the species. ----
 
 # load in land cover file as SpatRaster
-NLCD_rast <- rast("lab/lab_assignment_due_10.09.2024/frog_ponds_NLCD.tif")
+NLCD_rast <- rast("week_2/lab/lab_assignment/frog_ponds_NLCD.tif")
 NLCD_rast
 
 # create SpatRasters for shrub/scrub LC and urban LC
@@ -54,7 +54,7 @@ plot(frog_vect,
 plot(urban_rast,
      ext = ext(frog_vect),
      col = c("lightgrey",   # not urban
-             "brown"),  # urban
+             "brown"),      # urban
      main = "urban cover")
 plot(frog_vect,
      add = T,
@@ -115,7 +115,7 @@ plot(RACA_vect,       # add vector
      pch = 20,
      cex = 0.5,
      col = "purple")
-plot(scrub_buff,      # add buffer
+plot(RACA_buff,       # add buffer
      add = T)
 
 
@@ -130,7 +130,7 @@ plot(RACA_vect,
      pch = 20,
      cex = 0.5,
      col = "purple")
-plot(urban_buff,
+plot(RACA_buff,
      add = T)
 
 
@@ -138,7 +138,7 @@ plot(urban_buff,
 
 boxplot(RACA_vect$scrub_buff,
         RACA_vect$urban_buff,
-        names = c("scrub", "urban"),
+        names = c("Shrub/Scrub", "Urban"),
         main = expression(italic("Rana catesbeiana")
                           *" observations between land cover types"),
         ylab = "Occupancy",
@@ -149,13 +149,36 @@ boxplot(RACA_vect$scrub_buff,
 
 # 5. Use a t-test (R function t.test()) or a Mann-Whitney test (R function wilcox.test()) to compare the values of each landscape feature between sites where your focal species was and was not detected.
 
-# checking standard deviation and variance to determine what test to use
-sd(RACA_vect$scrub_buff)
-var(RACA_vect$scrub_buff)
+# checking the data to determine what test to use
 
-sd(RACA_vect$urban_buff)
-var(RACA_vect$urban_buff)
+# histogram
+hist(RACA_vect$scrub_buff)
+hist(RACA_vect$urban_buff)
+# variance
+var(RACA_vect$scrub_buff) # 0.05349599
+var(RACA_vect$urban_buff) # 0.00213168
+# standard deviation
+sd(RACA_vect$scrub_buff)  # 0.231292
+sd(RACA_vect$urban_buff)  # 0.046170
 
-# 
+
+# Mann-Whitney test due to differences in distribution and variance
 wilcox.test(RACA_vect$scrub_buff,
-            RACA_vect$urban_buff)
+            RACA_vect$urban_buff,
+            conf.int = T)
+
+# Wilcoxon rank sum test with continuity correction
+# 
+# data:  RACA_vect$scrub_buff and RACA_vect$urban_buff
+
+# W = 1295, p-value = 1.873e-14
+
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   0.4857303 0.6857071
+
+# sample estimates:
+#   mean of scrub_buff  mean of urban_buff 
+#   0.60603802          0.01170635
+#   median of scrub_buff  median of urban_buff
+#   0.5798319             0
