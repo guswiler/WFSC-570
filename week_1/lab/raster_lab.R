@@ -117,7 +117,7 @@ plot(pr1)   ## can see the distortion with the reprojection.
 
 # We'll start with the 2021 NLCD land cover layer for Maricopa County
 
-NLCD <- rast("lab/DEM_Maricopa.tif")
+NLCD <- rast("week_1/lab/NLCD_2021_Maricopa_for_lab.tif")
 ## you'll need to set your own file path that will look something like C:\Users\Olivia\Documents\R_Projects\WFSC-570\lab_1\NLCD_2021_Maricopa.tif when you paste it in, you'll need to change the \ to / for it to work in r.
 ## if you use setwd() you can set your working directory to direct it into the folder you're gathering files from so you can describe a shorter path like I did above.
 
@@ -252,9 +252,7 @@ plot(forest_edge,colNA="lightblue",
 
 # Within terra we can combine multiple rasters of identical extents and resolutions into a single multi-layered SpatRaster object. This is often useful when making model-based predictions with our rasters. 
 
-DEM <- rast(paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
-                    "WFSC 570 Habitat Analysis 3cr/ArcGIS/rasters/",
-                    "DEM_Maricopa.tif"))
+DEM <- rast(paste0("week_1/lab/DEM_Maricopa.tif"))
 
 layers <- c(FOREST,DEM)
 layers
@@ -265,9 +263,7 @@ plot(layers)
 # Saving rasters created using terra to disk is very easy using the writeRaster function. 
 
 writeRaster(FOREST_smooth,
-            paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
-                   "WFSC 570 Habitat Analysis 3cr/ArcGIS/rasters/",
-                   "FOREST_smoothb.tif"),
+            "week_1/lab/outputs/FOREST_smooth.tif",
             overwrite = T)
 
 

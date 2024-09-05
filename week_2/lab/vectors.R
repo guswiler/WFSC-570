@@ -33,7 +33,7 @@ library(terra)
 
 # Lets read in Becky's data as a CSV file using the read.csv() function. We will first specify the CSV file's path as a separate object.
 
-becky_data <- read.csv("lab/becky.csv")
+becky_data <- read.csv("week_2/lab/becky.csv")
 
 # We can see how our new data object (becky_data) looks by going to the environment tab, or we can look at it from the console using the following functions.
 
@@ -122,7 +122,7 @@ plot(becky_vect)
 
 
 # This raster represents the proportion of undeveloped upland land cover within a 100-m radius buffer
-upland <- rast("lab/becky_Upland_100.tif")
+upland <- rast("week_2/lab/becky_Upland_100.tif")
 upland
 
 plot(upland,             # raster
@@ -185,10 +185,10 @@ extract(upland,         # upland raster
 # Rather than reading in three additional SpatRaster objects we can create a multi-layer SpatRaster object directly by supplying all the file paths. 
 
 
-land_cover <- rast(c("lab/becky_Upland_100.tif",      # Undeveloped upland land cover
-                     "lab/becky_Urban_100.tif",       # Urban land cover
-                     "lab/becky_Wetlands_100.tif",    # Wetland land cover
-                     "lab/becky_Win_SDNDVI_100.tif")) # SD of winter NDVI within a 100-m radius buffer
+land_cover <- rast(c("week_2/lab/becky_Upland_100.tif",      # Undeveloped upland land cover
+                     "week_2/lab/becky_Urban_100.tif",       # Urban land cover
+                     "week_2/lab/becky_Wetlands_100.tif",    # Wetland land cover
+                     "week_2/lab/becky_Win_SDNDVI_100.tif")) # SD of winter NDVI within a 100-m radius buffer
 
 land_cover
 plot(land_cover, colNA = "dodgerblue")

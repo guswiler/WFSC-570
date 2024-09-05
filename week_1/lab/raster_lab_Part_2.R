@@ -35,7 +35,7 @@ library(terra)
 
 # The file path on my computer for this GeoTiff file is as follows:
 
-file_paths <- "lab/NLCD_2021_Maricopa_for_lab.tif"
+file_paths <- "week_1/lab/NLCD_2021_Maricopa_for_lab.tif"
 
 # You will need to change this file path to the location on your computer where you have stored this file. I would suggest creating a folder specifically for this labs in this class and saving all the files from labs within this folder. It often helps to keep the file path simple: (e.g., C:/School/WFSC570/Labs)
 
@@ -287,7 +287,7 @@ plot(forest_edge,colNA="grey",
 # I ensured that our NLCD and our DEM rasters would line up by first creating them in ArcPro. You could do this using the terra package in R but that is beyond the scope of this lab.
 
 # create a raster of our digital elevation model
-DEM <- rast("lab/DEM_Maricopa.tif") 
+DEM <- rast("week_1/lab/DEM_Maricopa.tif") 
 
 # Creating a multi-layered SpatRaster is as simple as combining the rasters you want layered
 layers <- c(FOREST,DEM)
@@ -299,10 +299,10 @@ plot(layers)
 # Saving rasters created using terra to disk is very easy using writeRaster() 
 
 # defining file path and file name
-output_raster_path <- "lab/outputs/FOREST_and_DEM.tif"
+output_raster_path <- "week_1/lab/outputs/FOREST_and_DEM.tif"
 
 writeRaster(forest_edge,        # The raster to save
             output_raster_path, # The file path for our saved raster
             overwrite = T)      # Tells R to over-write or copy over any previous versions of the file. 
 
-file.exists("lab/outputs/FOREST_and_DEM.tif")
+file.exists("week_1/lab/outputs/FOREST_and_DEM.tif")
