@@ -1,44 +1,38 @@
 rm(list=ls()) # clean workspace.  Caution!!!!
 
-# Lab 3: Introduction generalized linear models
+# Lab 3: Introduction generalized linear models (GLMs)
 
-# In this lab we will cover generalized linear models. While this 
-# may be a review of classes you are currently taking or have
-# already taken, analyses of wildlife habitat associations
-# rely heavily on GLMs and therefore a good grasp on GLMs
-# is important for understanding wildlife habitat analyses.
+# In this lab we will cover generalized linear models. While this may be a review of classes you are currently taking or have already taken, analyses of wildlife habitat associations rely heavily on GLMs and therefore a good grasp on GLMs is important for understanding wildlife habitat analyses.
 
-# We will also take this lab as an opportunity to introduce concepts
-# of data simulation which are important for understanding 
-# the underlying mechanics of the models you are working with
-# but which can also be a powerful tool in your analytical toolbox. 
-# For example, you might be concerned that a small sample size will
-# have too much of a detrimental affect on your results. You can
-# simulate data under your observed sample size and see what
-# type of precision and bias you might expect your parameter estimates.
+# We will also take this lab as an opportunity to introduce concepts of data simulation which are important for understanding the underlying mechanics of the models you are working with but which can also be a powerful tool in your analytical toolbox. 
+# For example, you might be concerned that a small sample size will have too much of a detrimental affect on your results. You can simulate data under your observed sample size and see what type of precision and bias you might expect your parameter estimates.
 
-# In this lab we will cover the two families of GLMs that are most
-# relevant for wildlife habitat analyses: the binomial GLM and
-# the Poisson GLM. 
 
-# Before we discuss these GLMs, lets review the basic ideas behind 
-# slopes and intercepts in regression models. These concepts are
-# important to grasp because when we start analyzing wildlife-
-# habitat data, most of our inferences are going to come
-# from the slopes estimated using regression-type analyses.
 
-# Lets start with simple linear regression: one response variable
-# called y and one explanatory variable or covariate called x.
-# You may have seen the equation for a straight line in high-school
-# algebra or an undergraduate stats class represented something like
-# this: y = m*x + b or y = m*x + c
+# In this lab we will cover the two families of GLMs that are most relevant for wildlife habitat analyses: 
+  # binomial GLM: modeling binary data (probability of getting y/n heads/tails, presence/absence)
+  # and the Poisson GLM 
+
+
+
+# Before we discuss these GLMs, lets review the basic ideas behind slopes and intercepts in regression models.
+# These concepts are important to grasp because when we start analyzing wildlife-habitat data, most of our inferences are going to come from the slopes estimated using regression-type analyses.
+
+# Lets start with simple linear regression: ----
+  # one response variable (y): what you go out an measure in the field, trying to figure out what explains the variation in your measurements and why
+  # and one explanatory variable or covariate (x)
+  # how does y respond to increase/decrease in x? ----
+
+
+# You may have seen the equation for a straight line in high-school algebra or an undergraduate stats class represented something like this:
+  # y = m*x + b or y = m*x + c
 # Does anyone remember what these letters represent?
+  # m = slope
+  # b (or c) = y-intercept
+  # y = response variable
+  # x = explanatory variable
 
-# Lets plot some data for y and x. Lets say that y 
-# represents the home range size in hectares of a forest
-# dwelling bird and x represents the proportion of forest
-# land cover in a 200-m circular buffer around the 
-# center of the bird's home range
+# Lets plot some data for y and x. Lets say that y = home range size (in hectares) of a forest dwelling bird and x = the proportion of forest land cover in a 200-m circular buffer around the center of the bird's home range
 
 y <- c(6.1,4.2,5.7,2.3,5.1,8.5,7.7,3.2)
 x <- c(0.9,0.5,0.7,0.3,0.4,0.6,0.7,0.2)
@@ -47,85 +41,91 @@ plot(y ~ x, ylim = c(0,10), xlim = c(0,1),
      ylab = "Bird Home Range Size (ha)",
      xlab = "Proportion Forest Cover")
 
-# We can see that there is something of trend here,
-# as x goes up, y also goes up. Now lets create a
-# statistical model that describes how home range size
-# changes as a function of surrounding forest cover.
-# Lets start with using a simple linear regression, a
-# model that assumes a linear relationship between
-# home range size and proportion forest cover. 
-# We can estimate a simple linear regression model
-# using the lm() function (lm for linear model). The 
-# code here is very simple:
+# We can see that there is something of trend here: ----
+  # as x goes up, y also goes up
+  # as forest cover increases, bird home range size also increases
+  # positive relationship/association ----
 
-lm_mod <- lm(y ~ x)
-class(lm_mod)
+# We want to quantify the relationship
+# Now lets create a statistical model that describes how home range size changes as a function of surrounding forest cover.
+# Lets start with using a simple linear regression:
+  # a model that assumes a linear relationship between y and x (here, home range size and proportion forest) cover.
+# We can estimate a simple linear regression model using the lm() function (lm for linear model).
 
-# Our newly create lm object (lm_mod) has all the information
-# we need to plot a straight line through our y/x data.
-# Lets plot that line first and then talk about how we
-# actually came up with that line. When we have a lm
-# object we can plot a straight line based on that lm
-# model using the abline() function.
 
-abline(lm_mod,
+# The code here is very simple:
+
+lm_mod <- lm(y ~ x) # how does y change as a function of x ( how does y change as x changes)
+class(lm_mod)       # class of this object is "lm"
+
+# Our newly create lm object (lm_mod) has all the information we need to plot a straight line through our y/x data.
+abline(lm_mod,  # use abline() to fit an lm object to our plot
        lwd = 2) # Line width, for a thicker line
 
-# Now lets look at the summary() of our lm object.
 
+# Now lets look at the summary() of our lm object.
 summary(lm_mod)
 
-# What do we see in our summary output? We actually see
-# quite a bit of information but there are three pieces of
-# information we need to focus on for now.
-# These are three parameters that are estimated from our
-# data on y and x. Two of these parameters are often called
+# Output:
+    # Residuals:
+    #   Min      1Q  Median      3Q     Max 
+    # -1.5805 -1.0625 -0.3375  0.8018  2.7482 
+    # 
+    # Coefficients:
+    #   Estimate Std. Error t value Pr(>|t|)  
+    # (Intercept)    1.894      1.528   1.240   0.2614  
+    # x              6.429      2.636   2.439   0.0505 .
+    # ---
+    #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+    # 
+    # Residual standard error: 1.622 on 6 degrees of freedom
+    # Multiple R-squared:  0.4979,	Adjusted R-squared:  0.4142 
+    # F-statistic:  5.95 on 1 and 6 DF,  p-value: 0.05052
+
+
+# What do we see in our summary output? We actually see quite a bit of information but there are three pieces of information we need to focus on for now. These are three parameters that are estimated from our data on y and x. ----
+  # 1. y-intercept aka β₀
+  # 2. slope (here, x is the name of our explanatory variable, which r names our slope in the output)
+  # 3. residual standard error, model will never describe all the variation within our collected points
+#  Two of these parameters are often called
 # coefficient or beta estimates. We can use the coef() function
-# to pull out our model's coefficient estimates.
+# to pull out our model's coefficient estimates. ----
 
 coef(lm_mod)
+    # (Intercept)          x 
+    # 1.894389      6.429043 
 
 # Lets talk about these two parameters more.
 
-# 1) The y-intercept [(Intercept)]
-#     The y-intercept (usually just called "the intercept"
-#     because we really don't care about the x-intercept)
-#     is the point at which the model's line crosses the
-#     y intercept, which occurs when x = 0.
-#     Where is this point? We can plot it!
+# 1) The y-intercept [(Intercept)] ----
+  # The y-intercept (usually just called "the intercept" because we really don't care about the x-intercept) is the point at which the model's line crosses the y-axis, which occurs when x = 0.
 
+# Where is this point? We can plot it!
 abline(v = 0) # Plots a vertical line originating from x = 0
 points(x = 0,               # x "coordinate" for our point
-       y = coef(lm_mod)[1], # y "coordinate" for our point
+       y = coef(lm_mod)[1], # y "coordinate" for point; [] used for indexing, here we want the 1st col
        pch = 21,            # point symbol, hollow circle
        bg = "grey",         # background color for hollow symbols
-       cex = 2)             # point size
+       cex = 2)             # point size ----
 
-# 2) The slope [x]
-#     The slope describes how your response variable (y) changes
-#     as our explanatory variable or covariate (x) changes. The
-#     slope is often called the effect size because the magnitude
-#     of the slope describes the strength of the effect that
-#     x has on y. If the slope is large, x has a stronger effect
-#     on y than if the slope is small. 
+# 2) The slope [here, x, but will be output as whatever you name the explanatory variable] ----
+  # The slope describes how your response variable (y) changes as our explanatory variable or covariate (x) changes.
+  # The slope is often called the effect size because the magnitude of the slope describes the strength of the effect that x has on y. If the slope is large, x has a stronger effect on y than if the slope is small. ----
 
 # Lets look at our slope again
 coef(lm_mod)[2]
 
-# What does this value by itself tell us about how bird home
-# range size changes as a function of proportion forest cover?
+# What does this value by itself tell us about how bird home range size changes as a function of proportion forest cover?
+    # positive interaction, as proportion of forest cover incr, home range size incr
 
-# Now lets use our equation for a straight line to calculate
-# bird home range size at any given value of proportion forest
-# cover. Remember the equation?
-# y = m*x + b
+# Now lets use our equation for a straight line to calculate bird home range size at any given value of proportion forest cover. Remember the equation? y = m*x + b
 
 b <- coef(lm_mod)[1]
 m <- coef(lm_mod)[2]
 
 # Forest cover = 0.00
 m*0.00 + b
-# Does this look familiar?
+# Does this look familiar? We've calculated our intercept!
 
 # Forest cover = 1.00
 m*1 + b
@@ -138,34 +138,29 @@ points(x = 1,
 
 # What is the difference between these two values?
 (m*1 + b) - (m*0.00 + b)
+    # x = 6.429043
+# Does this look familiar? We've calculated our slope!
 
-# Does this look familiar?
 
-# Lets plot horizontal lines representing the two predicted values
-# of home range size we have just calculated.
+
+# Lets plot horizontal lines representing the two predicted values of home range size we have just calculated.
 
 abline(h = m*0.00 + b,
        lty = 3) # Line type, dashed line
 abline(h = m*1.00 + b,
        lty = 3) # Line type, dashed line
+# The distance between the points on these two horizontal lines is our slope.
 
-# The two parameters we have just estimated, the intercept
-# and the slope, make up one of the three fundamental 
-# components of generalized linear models (GLM):
-# The deterministic function. 
-# It is called the deterministic function because there
-# is no uncertainty: when we plug in a given value of
-# x, we will get the same value of y every time. Every
-# regression-type model has a deterministic function
-# that describes how y is expected to change as x changes.
-# There is a key word, expected. The values we have
-# been calculating with our equation for a straight line
-# are also called expected values. 
-# Why call them expected values and not something a bit
-# more certain or confident? Because of the third 
-# parameter in our lm object we need to consider.
+# The two parameters we have just estimated, the intercept and the slope, make up one of the three fundamental components of generalized linear models (GLM):
+  # The deterministic function: It is called the deterministic function because there is no uncertainty
+    # when we plug in a given value of x, we will get the same value of y every time.
+    # Every regression-type model has a deterministic function that describes how y is expected to change as x changes.
+      # There is a key word, expected. The values we have been calculating with our equation for a straight line are also called expected values. Why call them expected values and not something a bit more certain or confident?
+      # Because of the third parameter in our lm object we need to consider.
 
-# 3) The residual standard error 
+
+
+# 3) The residual standard error ----
 #     You probably have gathered that real-world data in
 #     natural resources can be highly variable or highly
 #     heterogeneous. These are fancy words for "messy!"
@@ -174,89 +169,99 @@ abline(h = m*1.00 + b,
 #     through every data point. In fact, some of our points
 #     are quite far from this fitted line, which means that
 #     if we went out and estimated a bird's home range
-#     size when proportion forest cover was 0.60, we may
-#     observed an estimate quite different from:
+#     size when proportion forest cover was 0.60, we may have
+#     observed an estimate quite different from what was modeled:
+
+# deviation of points from our linear slope
 m*0.60 + b
 points(x = 0.60,
        y = m*0.60 + b,
        pch = 21,
        bg = "lightblue",
        cex = 1.5)
+# our plotted point on the slope does not match our measured value
+# what we expect (modeled) vs what is observed (measured)
 
-# This residual standard deviation is important because it
+
+# This residual standard error/deviation is important because it
 # describes the second fundamental component of all 
 # generalized linear models, the stochastic model or
-# error term. All regression-type models, including GLMs,
+# error term.
+# All regression-type models, including GLMs,
 # need an error term to describe the variation or scatter
 # in our data that is not explained by our deterministic 
-# function. When selecting a statistical model with which
-# to model our data, a key choice is our choice of
-# stochastic model.
+# function.
+# When selecting a statistical model with which to model our data, a key choice is our choice of stochastic model.
 
-# Lets illustrate the choice of a stochastic model by
-# simulating some data. For this example, we will simulate
-# data using a Gaussian or normal error distribution
-# although this will be the only time in this class
-# where we will use a model with a Gaussian error
-# distribution.
 
-# Lets specify the number of birds for whose home range
-# sizes we will simulate
+
+# Lets illustrate the choice of a stochastic model by simulating some data.
+# simulating our data allows us to verify that our model is doing what we want it to do and that we are using the correct model.
+# For this example, we will simulate data using a Gaussian or normal error distribution although this will be the only time in this class where we will use a model with a Gaussian error distribution. bell shaped distribution
+
+# Specify the number of birds for whose home range sizes we will simulate
 n <- 30 
 
 # Now lets specify our intercept and slope. But instead
 # of the m*x + b notation, we will switch over to using
 # notation more consistent with our use of the term
-# betas. The intercept is usually specified as beta_0 while
-# the slope is usually specified as beta_1.
+# betas.
+# The intercept is usually specified as beta_0 while the slope is usually specified as beta_1.
 
 b0 <- 2 # Intercept
 b1 <- 6 # Slope
 
 # Now lets simulate some values of proportion forest cover.
-# We can draw "n" values from a uniform distribution 
-# between 0 and 100 and then divide by 100 to get proportions.
+# We can draw "n" values from a uniform distribution between 0 and 100 and then divide by 100 to get proportions.
+    # later on, useful to simulate data using your actual sample sizes to determine if your model is accurate
+
 
 X <- runif(n,   # Number of random samples
            0,   # Lower bound on the uniform distribution
            100)/100 # Upper bound on the uniform distribution
+# runif() pulls n (you specify) random numbers in a normal distribution between lower and upper bounds (you specify)
+# if we plotted these values, would this look like actual collected data?
+  # No, we are missing the error around each point
+
 
 # Now we are ready to simulate our response values, our y's. 
-# Because we are simulating data using a normal error distribution
-# we will use R's rnorm() function. Lets look at the help for this
-# function. 
-
+# Because we are simulating data using a normal error distribution we will use R's rnorm() function.
 ?rnorm()
 
 # You will see that we have three arguments to consider.
-# n is the number of random samples. mean is the mean
-# of our normal distribution. Do you know what our mean is here?
-# The mean is another word for the expected value and how
-# do we get our expected value? From our deterministic function.
-# So the mean is our equation for a straight line. Finally,
-# we have sd for standard deviation. This is our residual
-# standard error and describes the amount of "noise" or 
-# deviation around our expected value. 
+  # n is the number of random samples.
+  # mean is the mean of our normal distribution.
+    # Do you know what our mean is here?
+    # The mean is another word for the expected value and how do we get our expected value? From our deterministic function.
+    # So the mean is our equation for a straight line.
+  # Finally, we have sd for standard deviation.
+    # This is our residual standard error and describes the amount of "noise" or deviation around our expected value. 
 
 # Lets simulate some data.
 
 Y <- rnorm(n,         # Number of bird home ranges
-           b0 + b1*X, # Mean or expected value, which is
-                      # our deterministic function
-           1.622)     # Standard deviation, error, or noise
-                      # around our expected value.
+           b0 + b1*X, # Mean or expected value, which is our deterministic function
+           1.622)     # Standard deviation, error, or noise around our expected value.
 
-# Now plot our data and fit a lm model to it so that we can
-# add a fitted line to our plot.
+# b0 + b1*X, these output values are the mean values we would expect to see if we measured 100 birds at each forest cover value. We would expect them to be centered on our slope line.
 
+# Now plot our data and fit a lm model to it so that we can add a fitted line to our plot.
 plot(Y ~ X,
      ylim = c(0,10),
      xlim = c(0,1))
+
+abline(a = b0, b = b1, col = "red")
+points(x = 0, y = b0, bg = "green", pch = 21, cex = 2)
+points(x = 1, y = b0 + (b1*1), bg = "green", pch = 21, cex = 2)
+# if we want slope, we can subtract highest point from lowest point (1 unit change in x because proportional)
+
+
+### Ended 2024-09-10 notes here!!
+
 new_lm_mod <- lm(Y ~ X)
 abline(new_lm_mod)
 
 # What is our intercept?
-
 est_intercept <- coef(new_lm_mod)[1]
 est_intercept
 
