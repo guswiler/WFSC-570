@@ -1,5 +1,7 @@
 rm(list=ls()) # clean workspace.  Caution!!!!
 
+set.seed(2)
+
 # Lab 3: Introduction generalized linear models (GLMs)
 
 # In this lab we will cover generalized linear models. While this may be a review of classes you are currently taking or have already taken, analyses of wildlife habitat associations rely heavily on GLMs and therefore a good grasp on GLMs is important for understanding wildlife habitat analyses.
