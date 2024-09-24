@@ -15,11 +15,7 @@ rm(list=ls()) # clean workspace.  Caution!!!!
 # or used-unused data. We have already covered the components of the binomial
 # GLM so lets use it to fit some presence-absence data. 
 
-# First, lets set our working directory (and make sure it exists!)
-
-base_dir <- "C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/WFSC 570 Habitat Analysis 3cr/Labs/occupancy/"
-dir.exists(base_dir)
-setwd(base_dir)
+getwd()
 
 # The data for these lab are inspired by prairie-associated songbirds from the
 # Midwest (e.g., Illinois). Across the Midwest USA, native prairie communities
@@ -28,44 +24,58 @@ setwd(base_dir)
 # more likely to occur within patches of native prairie habitat that are larger.
 # Our data represent 100 sites located on patches of native prairie habitat
 # which vary in size. Our first example data set represent a single point-count
-# survey conducted at each site to detect Bobolinks. Lets read in our data
-# as CSV text file.
+# survey conducted at each site to detect Bobolinks.
 
-single_survey_data <- read.csv("Bobolink_single_survey.csv")
+# Read in our data from CSV file
+single_survey_data <- read.csv("week_5/lab/Bobolink_single_survey.csv")
 
-# As always, lets view our data before doing anything else.
-
+# As always, view our data before doing anything else.
 head(single_survey_data)
 
 # We see a column denoting our detections of bobolinks (BOBO) and a column
-# denoting the value of native prairie patch size (Native). Native has been
-# rescaled to fit on the z-scale. This just means that it has a mean = 0 and
-# as SD = 1. z-score standardizing continuous covariates is a good practice
-# in many situations because it aids in model convergence (not an issue here)
-# and puts continuous covariates on the same scale so you can more easily
-# compare their effect sizes.
+# denoting the value of native prairie patch size (Native).
+# Native has been rescaled to fit on the z-scale.
+  # This just means that it has a mean = 0 and a SD = 1.
+  # z-score standardizing continuous covariates is a good practice in many and puts continuous covariates on the same scale so you can more easily compare their effect sizes.
+  # changing to z-scale helps models converge better
+  # puts all of continuous covariates onto the same scale
 
+# larger values (positive) indicate more native prairie habitat, smaller values (negative) indicate less native prairie habitat.
 summary(single_survey_data)
+# mean of binary data will give you proportion of 1's
+# here BOBO present at 25% of sites surveyed
 
 # At how many sites did we detect bobolinks?
+mean(single_survey_data$BOBO)  # mean of binary data will give you proportion of 1's
+# here BOBO present at 25% of sites surveyed
 
-mean(single_survey_data$BOBO)
+# use table() to get counts
 table(single_survey_data$BOBO)
+
+
 
 # Now lets fit a binomial GLM to these data and see if the size of native 
 # prairie patch influences the presence of bobolinks.
 
-BOBO_mod <- glm(BOBO ~ Native, data = single_survey_data, 
-                family = binomial)
+BOBO_mod <- glm(BOBO ~ Native,             # y as a function of x
+                data = single_survey_data, # where we're getting the data from
+                family = binomial)         # running a binomial GLM
 
 summary(BOBO_mod)
 
 # What do we see here?
+  # We see an increase in the number of bobolinks as we see more native prairie habitat, but it is not outside of what we would see randomly (insignificant P)
+  #              Estimate   Pr(>|z|)
+  # (Intercept)  -1.09887   1.96e-06
+  #   Native      0.03201       0.89
 
-# Now lets plot the relationship between probability of bobolinks being present
-# and the size of native prairie patch. Remember that we can use the 
-# predict function here. We need to provide predict() with covariate values
-# (with X's) at which to predict probability of bobolinks being present. 
+#how to determine the probability of finding bobolinks at a site with an average amount of prairie habitat: plogis of the intercept
+plogis(-1.09887)
+
+
+
+# Now lets plot the relationship between probability of bobolinks being present and the size of native prairie patch.
+# Remember that we can use the predict function here. We need to provide predict() with covariate values (with X's) at which to predict probability of bobolinks being present. 
 # So lets create a vector of values that range from the minimum to the 
 # maximum value of our actual Native covariate.
 
@@ -78,9 +88,11 @@ Native_pred
 # predict the probability of bobolinks being present given each of these
 # values of Native.
 
+# putting these generated values into a data frame to make them easier to work with
 BOBO_predicted <- data.frame(Native = Native_pred) 
 
-BOBO_predicted$p <- predict(BOBO_mod,     # Our glm object
+# adding predicted probabilities calculated using our original model based on observed data
+BOBO_predicted$p <- predict(BOBO_mod,                # Our glm object
                             newdata=BOBO_predicted,  # The new data for which
                                                      # we would like the expected
                                                      # values.
@@ -94,6 +106,7 @@ tail(BOBO_predicted)
 # size and add a line showing the predicted (or expected) probability of 
 # bobolink being present as a function of native prairie patch size.
 
+# plotting our 0,1 data as a function of the native prairie
 plot(BOBO ~ Native, data = single_survey_data, 
      ylim=c(0,1), 
      pch=16, 
@@ -106,6 +119,11 @@ lines(BOBO_predicted$Native,
       col="red", lwd=2)
 
 # What do we see?
+  # a really flat line
+# we only did one survey at each site, what is a reason why we don't see a strong relationship that we expect of a prairie obligate species?
+  # imperfect detection: species may be there, but we don't see it every time
+  # some of the 0s in our data could be false
+
 
 # Now a major assumption of this analysis has been that if bobolinks are present
 # we would have detected them on our single site survey.
@@ -113,23 +131,22 @@ lines(BOBO_predicted$Native,
 
 # Fortunately, the hypothetical researcher in this scenario did not think so
 # either. They actually conducted three visits to each of our 100 sites during
-# the bobolink nesting season. They also recorded wind speed during each site 
-# visit. This study design allows us to model the probability of bobolinks
-# being present as a function of native prairie patch size while also
-# accounting for imperfect detection. We will do this using the
-# single-season occupancy model first formulated by Makenzie et al. (2002).
+# the bobolink nesting season.
+  # They also recorded wind speed during each site visit (which could make it difficult to hear bobolinks at a site)
+# This study design allows us to model the probability of bobolinks being present as a function of native prairie patch size while also accounting for imperfect detection.
+# We will do this using the single-season occupancy model first formulated by Makenzie et al. (2002).
 
-# There are many ways to fit single-species single-season occupancy models
-# which are the focus of today's lab. Arguably the simplest approach is to
-# use the unmarked package in R. 
+# There are many ways to fit single-species single-season occupancy models which are the focus of today's lab.
+# Arguably the simplest approach is to use the unmarked package in R. ----
+
+# STOPPED HERE 2024-09-24 ----
+
 
 library(unmarked)
 
 ?unmarked
 
-# The function for fitting this model is the occu() function. Lets take a look
-# at it.
-
+# The function for fitting this model is the occu() function. Lets take a look at it.
 ?occu
 
 # The two primary arguments we need to concern ourselves with are the formula
