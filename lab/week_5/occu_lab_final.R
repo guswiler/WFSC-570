@@ -20,7 +20,7 @@ rm(list=ls()) # clean workspace.  Caution!!!!
 
 
 # Read in our data from CSV file
-single_survey_data <- read.csv("week_5/lab/Bobolink_single_survey.csv")
+single_survey_data <- read.csv("lab/week_5/Bobolink_single_survey.csv")
 
 # As always, view our data before doing anything else.
 head(single_survey_data)
@@ -155,7 +155,7 @@ library(unmarked)
 #   and they do some file compression (which is really nice when you save multi-layered SpatRasters).
 
 # read in unmarkedFrameOccu from RDS file
-occu_data <- readRDS("week_5/lab/Example_occupancy_data.rds")
+occu_data <- readRDS("lab/week_5/Example_occupancy_data.rds")
 
 class(occu_data) # confirming that it is an unmarkedFrameOccu
 summary(occu_data)
