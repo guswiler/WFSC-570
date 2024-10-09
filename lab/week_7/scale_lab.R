@@ -1,6 +1,6 @@
 rm(list=ls()) # clean workspace.  Caution!!!!
 
-# Lab 4: Scale in wildlife-habitat analyses
+# Lab 4: Scale in wildlife-habitat analyses ----
 
 # In today's lab we will illustrate one way in which we can account for the 
 # role of scale in wildlife-habitat analyses. As we have discussed in lecture,
@@ -55,12 +55,9 @@ rm(list=ls()) # clean workspace.  Caution!!!!
 # measure the average or proportion of our landscape features within 
 # each buffer. Lets read in our data and see what data we have.
 
-base_dir <- paste0("C:/Users/jbauder/Box/Bauder_Coop_Lab/UA_Teaching/",
-                   "WFSC 570 Habitat Analysis 3cr/Labs/scale/")
-setwd(base_dir)
-
-HYAR_data <- read.csv("HYAR_data_scale_lab.csv")
+HYAR_data <- read.csv("lab/week_7/HYAR_data_scale_lab.csv")
 head(HYAR_data)
+names(HYAR_data)
 
 # HYAR: zeros and ones denoting the absence or presence, respectively, of 
 #       Canyon Treefrogs (Hyla arenicolor)
@@ -73,11 +70,13 @@ head(HYAR_data)
 # PREC_100 through PREC_1200: the average precipitation within each buffer
 #       derived from PRISM climate data
 
+
+
 # Lets illustrate the pseudo-optimization approach for one covariate, Slope.
 # To do this, we will fit 12 binomial generalized linear models (GLM), one for
 # each of our buffer sizes (i.e., scales). We will use AIC to compare these
 # models and identify the "best" scale which we will consider the scale
-# of effect for slope.
+# of effect for slope.----
 
 # For a procedure like this I like to create an empty data frame to store
 # the results of my analyses. We know that this storage data frame should
@@ -111,22 +110,42 @@ plot(AIC ~ Scale, slope_scales,
      main = "Scale of effect for Slope")
 
 # What is our scale of effect for slope?
+  # buffer radius of 700m
 
-# We can also pull out the row from slope_scales that includes our scale
-# of effect
-
+# We can also pull out the row from slope_scales that includes our scale of effect
 slope_scales[which(slope_scales$AIC==min(slope_scales$AIC)),]
 
 # What is the effect of slope at the scale of effect?
-
-slope_SOE <- glm(HYAR ~ Slope_700, data = HYAR_data, family = binomial)
+# binomial GLM to look at HYLA presence as a function of slope at scale of effect 
+slope_SOE <- glm(HYAR ~ Slope_700,
+                 data = HYAR_data,
+                 family = binomial)
 summary(slope_SOE)
+    # Coefficients:
+    #               Estimate Std. Error z value Pr(>|z|)   
+    # (Intercept)   -0.55321    0.27749  -1.994  0.04620 * 
+    #   Slope_700    0.05404    0.02091   2.584  0.00977 **
+    #   ---
+    #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+    # 
+    # (Dispersion parameter for binomial family taken to be 1)
+    # 
+    # Null deviance: 236.91  on 170  degrees of freedom
+    # Residual deviance: 229.52  on 169  degrees of freedom
+    # AIC: 233.52
+    # 
+    # Number of Fisher Scoring iterations: 4
 
-# What is the expected probability of Canyon Treefrogs occurring at a site
-# with an average slope?
+# What is the expected probability of Canyon Treefrogs occurring at a site with an average slope?
+  # Because we have not z-score standardized, we cannot get this information by simply plogis(B1)
+  # Need to do use the formula, y = B0 + B1 * X
+plogis(-0.55321 + 0.05404 * mean(HYAR_data$Slope_700)) # 0.5175992, 51.8%
 
-# Now that we have identified the scale of effect for slope lets do the same
-# for water and precipitation
+
+
+
+
+# Now that we have identified the scale of effect for slope lets do the same for water and precipitation----
 
 water_scales <- data.frame(Covariate = "Water",
                            Scale = seq(100,1200,by = 100),
@@ -146,6 +165,9 @@ plot(AIC ~ Scale, water_scales,
      type = "b",
      xlab = "Scale (buffer radius in meters)",
      main = "Scale of effect for Water land cover")
+
+water_scales[which(water_scales$AIC==min(water_scales$AIC)),]
+# scale of effect: Water_100
 
 
 PREC_scales <- data.frame(Covariate = "PREC",
@@ -167,59 +189,55 @@ plot(AIC ~ Scale, PREC_scales,
      xlab = "Scale (buffer radius in meters)",
      main = "Scale of effect for Precipitation")
 
-# Now that we have identified our scales of effect of slope, mesic land covers,
-# and precipitation we could fit a pseudo-optimized multi-scale model with these
-# three covariates. But we are interested in a couple more topographic features.
+PREC_scales[which(PREC_scales$AIC==min(PREC_scales$AIC)),]
+# scale of effect: PREC_300
+
+# Now that we have identified our scales of effect of slope, mesic land covers, and precipitation we could fit a pseudo-optimized multi-scale model with these three covariates.
+
+# But we are interested in a couple more topographic features.
 # First, Canyon Treefrogs may show an association with elevation as lower sites
 # may be in more xeric landscape contexts and therefore be less likely to
 # support Canyon Treefrogs. So we should probably measure the elevation at
 # and around each site. Secondly, Canyon Treefrogs often live up to their 
 # names in that they occur in rocky ravine-like situations. It is therefore
 # conceivable that Canyon Treefrogs may be strongly associated with 
-# ravine- or valley like topography. Fortunately, there is a simple covariate
-# that we can calculate to distinguish between valley and ridge-like 
-# topography: Topographic Position Index (TPI). 
+# ravine- or valley like topography.
+# Fortunately, there is a simple covariate to distinguish between valley and ridge-like topography: 
+    # Topographic Position Index (TPI). 
 
-# TPI is simply the difference between the elevation at a single pixel and
-# the average elevation within some surrounding area. Pixels that have a higher
-# elevation than the average surrounding elevation are more likely to be on
-# ridges while pixels that have lower elevation than the average surrounding 
-# elevation are more likely to be in valleys. 
+# TPI is simply the difference between the elevation at a single pixel and the average elevation within some surrounding area.
+# Pixels that have a higher elevation than the average surrounding elevation are more likely to be on ridges while pixels that have lower elevation than the average surrounding elevation are more likely to be in valleys. 
 
-# To calculate TPI we will first need to extract the elevation at each site.
+# To calculate TPI we will first need to extract the elevation at each site. ----
 # Remember that we can do this using the extract() function in terra. So lets
 # load in terra, read in our DEM raster, and extract the elevation at each
 # of our sites.
 
 library(terra)
 
-DEM <- rast("Final_DEM_for_scale_lab.tif")
+DEM <- rast("lab/week_7/Final_DEM_for_scale_lab.tif")
 DEM
-plot(DEM)
 
-# Lets also plot our points
+plot(DEM)
+# add our points to the plot
 points(HYAR_data[,c("x","y")],
        pch = 21,
        bg = "lightgrey")
 
+
+# extract the DEM pixel values at our sites
 site_elev <- extract(DEM, 
                      HYAR_data[,c("x","y")])
 summary(site_elev)
 hist(site_elev$DEM)
 
-# We can now add a new column to HYAR_data with this site elevation data
-
+# add a new column to HYAR_data with this site elevation data
 HYAR_data$site_elev <- site_elev$DEM
 
-# But how do we measure the average elevation within our varying radii buffers
-# around each site? There are two ways we can do this. The first is to transform
-# our DEM raster into a raster where the pixel value is actually the average
-# elevation of some neighborhood or buffer around each pixel. We can do this 
-# by applying a "moving window" across our entire raster, that is, move a circular
-# buffer over every pixel in our raster, calculate the average elevation within
-# that buffer, and store that average value into the focal pixel. 
-# terra's focal() function can do just that. focal() is actually a very 
-# versatile function that can do much more than we will cover today.
+# But how do we measure the average elevation within our varying radii buffers around each site?
+# One way we can do this is transform our DEM raster into a raster where the pixel value is actually the average elevation of some neighborhood or buffer around each pixel.
+# We can do this by applying a "moving window" across our entire raster, that is, move a circular buffer over every pixel in our raster, calculate the average elevation within that buffer, and store that average value into the focal pixel. 
+# terra's focal() function can do just that
 
 # The focal function has three main arguments:
 #       x: the raster on which we wish to apply our "moving window"
@@ -231,23 +249,24 @@ HYAR_data$site_elev <- site_elev$DEM
 
 # Lets start with a 30-m (one pixel) radius circular moving window just as
 # an illustration.
-
 buffer <- focalMat(DEM, 
                    d = 30, 
-                   type=c('circle'))
+                   type='circle')
 buffer
 
-# Notice that we have a matrix of fractional values. Also notice how these values
-# will sum to one. What does this mean? 
-
+# Notice that we have a matrix of fractional values. Also notice how these values will sum to one.
 sum(buffer)
+# What does this mean? We will use the weighted average
+
+
 
 # We are going to use this matrix to calculate what is called a weighted average.
-# Weighted averages are another very useful tool that we won't get into much
-# today. But they work by multiplying your data values (elevation in this case)
-# by the weights and then summing the products. Lets create a 3 x 3 matrix
-# with some simple integer values.
+# Weighted averages are another very useful tool that we won't get into much today.
+# But they work by multiplying your data values (elevation in this case) by the weights and then summing the products
 
+# Example of weighted average using some simple integer values.
+
+# create matrix with fake data
 test_elev <- matrix(c(1,2,3,4,5,6,7,8,9),ncol = 3, nrow = 3)
 
 mean(test_elev)
@@ -267,21 +286,18 @@ buffer_500 <- focalMat(DEM,
                    d = 500, 
                    type=c('circle'))
 
-# Lets put our focal() function inside the system.time() function to see how
-# long this will take
-
+# Lets put our focal() function inside the system.time() function to see how long this will take
+    # over a minute
 system.time(scale_DEM_500 <- focal(DEM, 
                                     w = buffer_500, 
-                                    fun = "mean"))
+                                    fun = "mean")) # average elevation within the window we just created
 
 # How does our "smoothed" elevation raster compare to our original DEM?
-
 plot(scale_DEM_500)
 plot(DEM)
+# it's smoother, less crisp
 
-# Once we have our "smoothed" raster, we can now extract values from this raster
-# at each site and we will be extracting the average elevation within a 500-m
-# circular radius buffer.
+# Once we have our "smoothed" raster, we can now extract values from this raster at each site and we will be extracting the average elevation within a 500-m circular radius buffer.
 
 elev_500 <- extract(scale_DEM_500, 
                     HYAR_data[,c("x","y")])
@@ -296,16 +312,13 @@ summary(HYAR_data$site_elev)
 # took over four minutes. Which is too long for our lab so we will go to 
 # option #2 for extracting data at multiple spatial scales.
 
-# But before we do, what are some advantageous of having rasters representing
-# our landscape features at different spatial scales? 
+# But before we do, what are some advantageous of having rasters representing our landscape features at different spatial scales?
 
-# Option #2 is to use our buffer or window directly within terra's extract()
-# function. Recall that extract can extract all the pixel values within a
-# SpatVector polygon. So if we create a SpatVector polygon object representing
-# 500-m circular buffers around each site, we will be able to extract the
-# elevation values from each pixel within that buffer and then summarize them.
-# extract() does have a fun= argument (function) where we can tell it to take
-# the mean of our extract pixels.
+# Option #2 is to use our buffer or window directly within terra's extract() ----
+# Faster than running focal()
+# Recall that extract can extract all the pixel values within a SpatVector polygon
+# So if we create a SpatVector polygon object representing 500-m circular buffers around each site, we will be able to extract the elevation values from each pixel within that buffer and then summarize them.
+# extract() does have a fun= argument (function) where we can tell it to take the mean of our extract pixels.
 
 # To implement this option we will first need to convert our site data into a
 # SpatVector point object and then create our SpatVector polygon buffers.
@@ -323,10 +336,7 @@ elev_500_buffer <- extract(DEM,
 
 head(elev_500_buffer)
 
-# Now lets put all this into a loop that will calculate the average elevation
-# around each site for each of our buffer sizes. We will then add a new column
-# to our HYAR_data data frame with average elevation within each of these
-# buffer sizes.
+# Now lets put all this into a loop that will calculate the average elevation around each site for each of our buffer sizes. We will then add a new column to our HYAR_data data frame with average elevation within each of these buffer sizes.
 
 buffer_sizes <- seq(100,1200,by = 100)
 
@@ -350,7 +360,7 @@ for(i in 1:length(buffer_sizes)){
 
 head(HYAR_data)
 
-# We now have the data we need to find the scale of effect for elevation on
+# We now have the data we need to find the scale of effect for elevation on ----
 # Canyon Treefrog occurrence. But what about TPI? Well, we have the elevation
 # of each site (site_elev) and now we have the average elevation in a variety
 # of neighborhood sizes, so we have all the data we need.
@@ -383,6 +393,8 @@ plot(AIC ~ Scale, Elev_scales,
      xlab = "Scale (buffer radius in meters)",
      main = "Scale of effect for Elevation")
 
+Elev_scales[which(Elev_scales$AIC==min(Elev_scales$AIC)),]
+# scale of effect: Elev_1200
 
 TPI_scales <- data.frame(Covariate = "TPI",
                           Scale = seq(100,1200,by = 100),
@@ -403,9 +415,10 @@ plot(AIC ~ Scale, TPI_scales,
      xlab = "Scale (buffer radius in meters)",
      main = "Scale of effect for Topographic Position Index")
 
-# Now we have completed our pseudo-optimization procedure to identify 
-# the scale of effect for each of our covariates. Lets fit a series of single-
-# scale models with each covariate at its scale of effect.
+TPI_scales[which(TPI_scales$AIC==min(TPI_scales$AIC)),]
+# scale of effect: TPI_100
+
+# Now we have completed our pseudo-optimization procedure to identify the scale of effect for each of our covariates. Lets fit a series of single-scale models with each covariate at its scale of effect.
 
 slope_scales[which(slope_scales$AIC==min(slope_scales$AIC)),]
 water_scales[which(water_scales$AIC==min(water_scales$AIC)),]
@@ -447,18 +460,28 @@ zmulti_scale_mod <- glm(HYAR ~ scale(Slope_700) + scale(Water_100) +
 
 summary(zmulti_scale_mod)
 
-# Now what can we say about the effect of landscape features on Canyon Treefrog
-# distribution? 
+# we fit a multi-covariate, pseudo-optimized, multi-scale model (a real mouthfull) 
+
+# Now what can we say about the effect of landscape features on Canyon Treefrog distribution?
+  # water and TPI are most influential of these covariates to indicate probability of tree frog presence
 
 new_data <- data.frame(Slope_700 = seq(min(HYAR_data_final$Slope_700),
-                                       min(HYAR_data_final$Slope_700),length.out=30),
+                                       max(HYAR_data_final$Slope_700),length.out=30),
                        Water_100 = seq(min(HYAR_data_final$Water_100),
-                                       min(HYAR_data_final$Water_100),length.out=30),
+                                       max(HYAR_data_final$Water_100),length.out=30),
                        PREC_300 = seq(min(HYAR_data_final$PREC_300),
-                                       min(HYAR_data_final$PREC_300),length.out=30),
+                                       max(HYAR_data_final$PREC_300),length.out=30),
                        Elev_1200 = seq(min(HYAR_data_final$Elev_1200),
-                                       min(HYAR_data_final$Elev_1200),length.out=30),
+                                       max(HYAR_data_final$Elev_1200),length.out=30),
                        TPI_100 = seq(min(HYAR_data_final$TPI_100),
-                                       min(HYAR_data_final$TPI_100),length.out=30))
+                                       max(HYAR_data_final$TPI_100),length.out=30))
 
-predict
+
+
+## need to try and figure out how to do this ----
+# Add a new column to df containing the expected values on the link function.
+df$predict <- predict.glm(zmulti_scale_mod,     # Our glm object
+                      newdata = new_data,  # The new data for which we would like the expected values.
+                      type = c("link")) # The scale of those expected
+# values
+df$response <- predict(bin.glm, newdata=df, type="response")
