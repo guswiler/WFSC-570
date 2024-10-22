@@ -17,9 +17,10 @@
 # for constructing utilization distributions, calculating selection strength and graphing results.
 
 # download some packages not on CRAN
-#remotes::install_version("SDMTools", "1.1-221.2") # not available on CRAN anymore
-#devtools::install_github("pratikunterwegs/atlastools")
-#using development version of 'amt': devtools::install_github("jmsigner/amt", build_vignettes = T, force = T)
+remotes::install_version("SDMTools", "1.1-221.2") # not available on CRAN anymore
+devtools::install_github("pratikunterwegs/atlastools")
+# using development version of 'amt': 
+devtools::install_github("jmsigner/amt")
 
 # load packages
 pacman::p_load(tidyverse, sp, leaflet, amt, readr, dplyr, tidyr, purrr, 
